@@ -1,55 +1,85 @@
-import { ipcRenderer, contextBridge } from 'electron'
+import { OllamaEmbeddingModels, OpenAIEmbeddingModels } from '@/constants/models';
+import { IConversation } from '@/type/conversation';
+import { IIntegration } from '@/type/integration';
+import { IWorkflow } from '@/type/workflow';
+import { contextBridge, ipcRenderer } from 'electron';
 
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld('ipcRenderer', {
-  on(...args: Parameters<typeof ipcRenderer.on>) {
-    const [channel, listener] = args
-    return ipcRenderer.on(channel, (event, ...args) => listener(event, ...args))
-  },
-  off(...args: Parameters<typeof ipcRenderer.off>) {
-    const [channel, ...omit] = args
-    return ipcRenderer.off(channel, ...omit)
-  },
-  send(...args: Parameters<typeof ipcRenderer.send>) {
-    const [channel, ...omit] = args
-    return ipcRenderer.send(channel, ...omit)
-  },
-  invoke(...args: Parameters<typeof ipcRenderer.invoke>) {
-    const [channel, ...omit] = args
-    return ipcRenderer.invoke(channel, ...omit)
-  },
+	addWorkflow: (workflow: IWorkflow) => ipcRenderer.send('add-workflow', workflow),
+	getWorkflows: () => ipcRenderer.invoke('get-workflows'),
+	getIntegrations: () => ipcRenderer.invoke('get-integrations'),
+	getSettings: () => ipcRenderer.invoke('get-settings'),
+	getNodelets: () => ipcRenderer.invoke('get-nodelets'),
+	getWorkSpace: () => ipcRenderer.invoke('get-workspace'),
+	getKnowledgeBases: () => ipcRenderer.invoke('get-knowledgeBases'),
+	getConversationById: (id: string) => ipcRenderer.invoke('get-conversation', { id }),
+	getConversations: () => ipcRenderer.invoke('get-conversations'),
+	saveWorkflows: (workflowIdx: number, workflow: IWorkflow) => ipcRenderer.invoke('save-workflows', { workflowIdx, workflow }),
+	saveIntegration: (integrationIdx: number, integration: IIntegration) =>
+		ipcRenderer.invoke('save-integrations', { integrationIdx, integration }),
+	addKnowledgeBase: (name: string, description: string, model: OllamaEmbeddingModels | OpenAIEmbeddingModels, files: File[]) =>
+		ipcRenderer.invoke('add-knowledgeBase', {
+			files,
+			name,
+			description,
+			model,
+		}),
+	addDocuments: (files: File[], id: string) => ipcRenderer.invoke('add-documents', { files, id }),
+	saveSettings: (setting) => ipcRenderer.invoke('save-settings', { setting }),
+	saveGlobal: (setting) => ipcRenderer.invoke('save-global', { setting }),
+	chat: (sessionId: string, workflowId: string, query: string, workflow: IWorkflow) =>
+		ipcRenderer.invoke('chat', { sessionId, workflowId, query, workflow }),
+	newConversation: (workflowId: string) => ipcRenderer.invoke('new-conversation', { workflowId }),
+	saveConversation: (sessionId: string, conversation: IConversation) =>
+		ipcRenderer.invoke('save-conversation', { sessionId, conversation }),
+	openDialog: () => ipcRenderer.invoke('open-directory-dialog'),
 
-  // You can expose other APTs you need here.
-  // ...
-})
+	on(...args: Parameters<typeof ipcRenderer.on>) {
+		const [channel, listener] = args;
+		return ipcRenderer.on(channel, (event, ...args) => listener(event, ...args));
+	},
+	off(...args: Parameters<typeof ipcRenderer.off>) {
+		const [channel, ...omit] = args;
+		return ipcRenderer.off(channel, ...omit);
+	},
+	send(...args: Parameters<typeof ipcRenderer.send>) {
+		const [channel, ...omit] = args;
+		return ipcRenderer.send(channel, ...omit);
+	},
+	invoke(...args: Parameters<typeof ipcRenderer.invoke>) {
+		const [channel, ...omit] = args;
+		return ipcRenderer.invoke(channel, ...omit);
+	},
+});
 
 // --------- Preload scripts loading ---------
 function domReady(condition: DocumentReadyState[] = ['complete', 'interactive']) {
-  return new Promise(resolve => {
-    if (condition.includes(document.readyState)) {
-      resolve(true)
-    } else {
-      document.addEventListener('readystatechange', () => {
-        if (condition.includes(document.readyState)) {
-          resolve(true)
-        }
-      })
-    }
-  })
+	return new Promise((resolve) => {
+		if (condition.includes(document.readyState)) {
+			resolve(true);
+		} else {
+			document.addEventListener('readystatechange', () => {
+				if (condition.includes(document.readyState)) {
+					resolve(true);
+				}
+			});
+		}
+	});
 }
 
 const safeDOM = {
-  append(parent: HTMLElement, child: HTMLElement) {
-    if (!Array.from(parent.children).find(e => e === child)) {
-      return parent.appendChild(child)
-    }
-  },
-  remove(parent: HTMLElement, child: HTMLElement) {
-    if (Array.from(parent.children).find(e => e === child)) {
-      return parent.removeChild(child)
-    }
-  },
-}
+	append(parent: HTMLElement, child: HTMLElement) {
+		if (!Array.from(parent.children).find((e) => e === child)) {
+			return parent.appendChild(child);
+		}
+	},
+	remove(parent: HTMLElement, child: HTMLElement) {
+		if (Array.from(parent.children).find((e) => e === child)) {
+			return parent.removeChild(child);
+		}
+	},
+};
 
 /**
  * https://tobiasahlin.com/spinkit
@@ -58,8 +88,8 @@ const safeDOM = {
  * https://matejkustec.github.io/SpinThatShit
  */
 function useLoading() {
-  const className = `loaders-css__square-spin`
-  const styleContent = `
+	const className = `loaders-css__square-spin`;
+	const styleContent = `
 @keyframes square-spin {
   25% { transform: perspective(100px) rotateX(180deg) rotateY(0); }
   50% { transform: perspective(100px) rotateX(180deg) rotateY(180deg); }
@@ -85,34 +115,34 @@ function useLoading() {
   background: #282c34;
   z-index: 9;
 }
-    `
-  const oStyle = document.createElement('style')
-  const oDiv = document.createElement('div')
+    `;
+	const oStyle = document.createElement('style');
+	const oDiv = document.createElement('div');
 
-  oStyle.id = 'app-loading-style'
-  oStyle.innerHTML = styleContent
-  oDiv.className = 'app-loading-wrap'
-  oDiv.innerHTML = `<div class="${className}"><div></div></div>`
+	oStyle.id = 'app-loading-style';
+	oStyle.innerHTML = styleContent;
+	oDiv.className = 'app-loading-wrap';
+	oDiv.innerHTML = `<div class="${className}"><div></div></div>`;
 
-  return {
-    appendLoading() {
-      safeDOM.append(document.head, oStyle)
-      safeDOM.append(document.body, oDiv)
-    },
-    removeLoading() {
-      safeDOM.remove(document.head, oStyle)
-      safeDOM.remove(document.body, oDiv)
-    },
-  }
+	return {
+		appendLoading() {
+			safeDOM.append(document.head, oStyle);
+			safeDOM.append(document.body, oDiv);
+		},
+		removeLoading() {
+			safeDOM.remove(document.head, oStyle);
+			safeDOM.remove(document.body, oDiv);
+		},
+	};
 }
 
 // ----------------------------------------------------------------------
 
-const { appendLoading, removeLoading } = useLoading()
-domReady().then(appendLoading)
+const { appendLoading, removeLoading } = useLoading();
+domReady().then(appendLoading);
 
 window.onmessage = (ev) => {
-  ev.data.payload === 'removeLoading' && removeLoading()
-}
+	ev.data.payload === 'removeLoading' && removeLoading();
+};
 
-setTimeout(removeLoading, 4999)
+setTimeout(removeLoading, 4999);
