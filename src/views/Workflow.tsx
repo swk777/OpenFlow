@@ -1,4 +1,5 @@
-import { Button, Card, Space } from '@mantine/core';
+import { Button, Card, Menu, Space, rem } from '@mantine/core';
+import { IconMessageChatbot, IconTimeline } from '@tabler/icons-react';
 import { ListFilter, PlusCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
@@ -16,10 +17,30 @@ export default function Workflow({}: Props) {
 						<ListFilter className="h-3.5 w-3.5 mr-1" />
 						<span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Filter</span>
 					</Button>
-					<Button size="sm" className="h-7 gap-1" onClick={() => navigate(`/workflow-edit/${uuidv4()}`)}>
-						<PlusCircle className="h-3.5 w-3.5 mr-1" />
-						<span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Add Workflow</span>
-					</Button>
+					<Menu trigger="click-hover">
+						<Menu.Target>
+							<Button size="sm" className="h-7 gap-1">
+								<PlusCircle className="h-3.5 w-3.5 mr-1" />
+								<span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Add Workflow</span>
+							</Button>
+						</Menu.Target>
+						<Menu.Dropdown>
+							<Menu.Item
+								leftSection={<IconMessageChatbot style={{ width: rem(14), height: rem(14) }} />}
+								onClick={() => navigate(`/workflow-edit/${uuidv4()}?category=Chatbot`)}
+								className="w-36"
+							>
+								Chatbot
+							</Menu.Item>
+							<Menu.Item
+								leftSection={<IconTimeline style={{ width: rem(14), height: rem(14) }} />}
+								onClick={() => navigate(`/workflow-edit/${uuidv4()}?category=Automation`)}
+								className="w-36"
+							>
+								Automation
+							</Menu.Item>
+						</Menu.Dropdown>
+					</Menu>
 				</div>
 			</div>
 			<Space h="sm" />

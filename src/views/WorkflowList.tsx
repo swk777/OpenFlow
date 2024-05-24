@@ -9,7 +9,6 @@ type Props = {};
 
 export default function WorkflowList({}: Props) {
 	const { workflows = [] } = useContext(AppContext);
-	console.log(workflows);
 	const navigate = useNavigate();
 	return workflows.length === 0 ? (
 		<Container>

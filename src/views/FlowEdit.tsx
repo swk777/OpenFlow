@@ -1,5 +1,5 @@
 import Configuration from '@/node/config/Configuration';
-import { IconBrandHipchat, IconCheck, IconDeviceFloppy, IconPencil } from '@tabler/icons-react';
+import { IconBrandHipchat, IconCheck, IconDeviceFloppy, IconPencil, IconPlayerPlay } from '@tabler/icons-react';
 import { MouseEvent, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -19,21 +19,29 @@ import ReactFlow, {
 import { getInitialWorkflow } from '@/constants/workflow';
 import { AppContext } from '@/context/AppContext';
 import InternalNode from '@/node/InternalNode';
+import { WorkflowCategory } from '@/type/nodelet';
 import { IWorkflow } from '@/type/workflow';
 import { buildDefaultConfig } from '@/utils/utils';
-import { Button, Divider, Drawer, Flex, FocusTrap, Group, TextInput } from '@mantine/core';
+import { getNodeletsByCategory } from '@/utils/workflow';
+import { Button, Divider, Drawer, Flex, FocusTrap, Group, Modal, TextInput } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import 'reactflow/dist/style.css';
 import ChatWorkflow from './ChatWorkflow';
 import Nodelet from './Nodelet';
+import RunAutomation from './RunAutomation';
 
 const nodeTypes = { internalNodelet: InternalNode };
 
 function FlowEdit() {
 	const { workflowId = '' } = useParams();
+	let [searchParams] = useSearchParams();
+	const category = searchParams.get('category') as WorkflowCategory;
 	const [configOpened, setConfigOpened] = useState(false);
 	const [chatOpened, setChatOpened] = useState(false);
+	const [inputsModalOpened, { open, close }] = useDisclosure(false);
+
 	const { nodelets, workflows, updateWorkflow, integrations, refreshWorkflows } = useContext(AppContext);
 	const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance>();
 	const reactFlowWrapper = useRef(null);
@@ -44,6 +52,8 @@ function FlowEdit() {
 	const [isEditingName, setIsEditingName] = useState(false);
 	const [workflowName, setWorkflowName] = useState(workflow?.name);
 	const integration = integrations.find((intgn) => intgn.id === selectedNode?.data.nodeletId);
+	const workflowNodelets = useMemo(() => getNodeletsByCategory(nodelets, category), [nodelets, category]);
+
 	const onDrop: React.DragEventHandler<HTMLDivElement> = useCallback(
 		(event) => {
 			event.preventDefault();
@@ -66,7 +76,7 @@ function FlowEdit() {
 				type: 'node',
 				position,
 				data: {
-					label: nodelet.id,
+					label: nodelet.name,
 					nodeletId,
 					config: buildDefaultConfig(nodelet),
 				},
@@ -146,18 +156,29 @@ function FlowEdit() {
 						size="sm"
 						className="h-7 gap-1"
 						onClick={() => {
-							setChatOpened(true);
+							if (category === WorkflowCategory.Chatbot) {
+								setChatOpened(true);
+							} else {
+								// window.ipcRenderer.executeAutomation(workflow?.id, workflow).then(() => {
+								// 	// refreshConversations();
+								// });
+								open();
+							}
 						}}
 					>
-						<IconBrandHipchat className="h-3.5 w-3.5" />
-						<span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Chat</span>
+						{category === WorkflowCategory.Chatbot ? (
+							<IconBrandHipchat className="h-3.5 w-3.5" />
+						) : (
+							<IconPlayerPlay className="h-3.5 w-3.5" />
+						)}
+						<span className="sr-only sm:not-sr-only sm:whitespace-nowrap">{category === WorkflowCategory.Chatbot ? 'Chat' : 'Run'}</span>
 					</Button>
 				</Flex>
 			</Flex>
 			<Divider />
 			<div className="flex flex-1 relative">
 				<aside className="w-38 py-4 flex flex-col ">
-					{nodelets.map((nodelet) => (
+					{workflowNodelets.map((nodelet) => (
 						<Nodelet nodelet={nodelet} key={nodelet.id} />
 					))}
 				</aside>
@@ -244,6 +265,9 @@ function FlowEdit() {
 						}}
 					/>
 				</Drawer>
+				<Modal opened={inputsModalOpened} size="lg" onClose={close} title="Run Automation">
+					<RunAutomation nodes={nodes} workflow={workflow} />
+				</Modal>
 			</div>
 		</Flex>
 	);

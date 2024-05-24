@@ -1,4 +1,4 @@
-import { ReactFlowJsonObject } from 'reactflow';
+import { Edge, Node } from 'reactflow';
 
 export enum IWorkflowStatus {
 	Draft = 'Draft',
@@ -12,7 +12,7 @@ export enum IWorkflowCategory {
 export interface IWorkflow {
 	id: string;
 	name: string;
-	category: IWorkflowStatus;
+	category: IWorkflowCategory;
 	lastModified: string;
-	data: ReactFlowJsonObject;
+	data: { nodes: Node[]; edges: Edge[] };
 }

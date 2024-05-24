@@ -15,7 +15,7 @@ export default function ChatWorkflow({ workflow, sessionId }: Props) {
 	const id = useMemo(() => sessionId ?? `temp-${workflow?.id}-${uuidv4()}`, []);
 	const workflowConversation = useMemo(() => conversations.find((c) => c.sessionId === id), [conversations]);
 	const messages = useMemo(() => {
-		return workflowConversation?.globalContext?.messages ?? [];
+		return workflowConversation?.conversationContext?.messages ?? [];
 	}, [sessionId, conversations]);
 	useEffect(() => {
 		window.ipcRenderer.getConversationById(id).then(() => {

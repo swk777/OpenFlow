@@ -1,7 +1,7 @@
-import { IWorkflowCategory } from '@/type/workflow';
+import { IWorkflow, IWorkflowCategory } from '@/type/workflow';
 import { format } from 'date-fns';
 
-export const getInitialWorkflow = (id: string) => ({
+export const getInitialWorkflow = (id: string): IWorkflow => ({
 	id,
 	name: 'New Workflow',
 	category: IWorkflowCategory.Chatbot,

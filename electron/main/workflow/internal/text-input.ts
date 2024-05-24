@@ -1,9 +1,9 @@
 import { NodeletExecuteContext } from '../type';
 
-export async function executeUserInput({ nodeId, globalContext, setNodeContext, setGlobalContext }: NodeletExecuteContext) {
+export async function executeTextInput({ nodeId, globalContext, setNodeContext, nodeContext }: NodeletExecuteContext) {
 	console.log(`executing node ${nodeId}, current message: ${globalContext?.userInput}`);
 	setNodeContext &&
 		setNodeContext({
-			outputs: { query: globalContext?.userInput },
+			outputs: { output: nodeContext?.text },
 		});
 }

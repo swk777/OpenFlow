@@ -26,6 +26,7 @@ export interface NodeletOutput {
 export interface Nodelet {
 	id: string;
 	category: NodeletCategory;
+	workflowCategory: WorkflowCategory;
 	name: string;
 	internal: boolean;
 	integration?: boolean;
@@ -33,4 +34,10 @@ export interface Nodelet {
 	inputs: NodeletInput[];
 	outputs: NodeletOutput[];
 	configDefinitions: IConfigBaseExtend<any>;
+}
+
+export enum WorkflowCategory {
+	'Chatbot' = 'Chatbot',
+	'Automation' = 'Automation',
+	'All' = 'All',
 }

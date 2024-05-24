@@ -1,7 +1,7 @@
 import { DefaultData } from '@/constants/initialData';
 import { JSONFilePreset } from 'lowdb/node';
 import { addDocuments, createKnowledgeBase } from './knowledgeBase';
-import { chat, newConversation } from './workflow/chat';
+import { chat, newConversation, runAutomation } from './workflow/execution';
 
 export function initStorage(ipcMain, workspacePath) {
 	globalThis.workspacePath = workspacePath;
@@ -73,7 +73,12 @@ export function initStorage(ipcMain, workspacePath) {
 				await db.read();
 				const { sessionId, workflowId, query, workflow } = post;
 				const conversation = await chat(sessionId, workflowId, query, workflow, db);
-				return conversation?.globalContext.messages;
+				return conversation?.conversationContext.messages;
+			});
+			ipcMain.handle('run-automation', async (event, post) => {
+				await db.read();
+				const { workflowId, inputs, workflow } = post;
+				return await runAutomation(workflowId, inputs, workflow, db);
 			});
 			ipcMain.handle('new-conversation', async (event, post) => {
 				await db.read();

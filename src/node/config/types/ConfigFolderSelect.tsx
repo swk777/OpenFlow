@@ -1,37 +1,18 @@
-import { Input, Text } from '@mantine/core';
-import { ChangeEvent, ReactElement, useCallback, useEffect, useRef, useState } from 'react';
+import { IConfigBaseProps, IConfigDefinitionBase } from '@/type/configDefinition';
+import { Button, Group, Input } from '@mantine/core';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import useDef, { useDependOnMap } from '../useDef';
 
-import { IConfigBaseProps, IConfigDefinitionBase } from '@/type/configDefinition';
-
-interface IConfigInput extends IConfigDefinitionBase {
-	misc?: {
-		unit?: string;
-		maxLength?: number;
-	};
-}
-
-function ConfigInput({ definition, style }: IConfigBaseProps<IConfigInput>): ReactElement {
+export default function ConfigFolderSelect({ definition, style }: IConfigBaseProps<IConfigDefinitionBase>) {
 	const [fieldValue, updateFv, readonly] = useDef(definition);
 	const prevFv = useRef(fieldValue);
 	const [inputValue, setInputValue] = useState(fieldValue);
 	const [error, setError] = useState<String>();
 	const { disabledOnMap = {} } = definition;
-	const { unit, maxLength } = definition.misc || {};
 	const onChange = useCallback(
-		(e: ChangeEvent<HTMLInputElement>): void => {
-			updateFv(e.currentTarget.value);
-			setInputValue(e.target.value);
-		},
-		[updateFv],
-	);
-	const onBlur = useCallback(
-		(e: ChangeEvent<HTMLInputElement>) => {
-			if (e.target.value === '' && definition.required) {
-				setError('Required');
-				return;
-			}
-			updateFv(e.target.value);
+		(v: string): void => {
+			updateFv(v);
+			setInputValue(v);
 		},
 		[updateFv],
 	);
@@ -51,22 +32,26 @@ function ConfigInput({ definition, style }: IConfigBaseProps<IConfigInput>): Rea
 			setInputValue(fieldValue);
 		}
 	}, [fieldValue, updateFv, disabled]);
-
+	const handleSelectFolder = () => {
+		window.ipcRenderer.openDialog().then((filePath) => {
+			onChange(filePath);
+		});
+	};
 	return (
 		<Input.Wrapper label={definition?.label} className="text-left" description={definition?.description} required={definition.required}>
-			<Input
-				value={inputValue}
-				onChange={onChange}
-				onBlur={onBlur}
-				placeholder={definition.placeholder}
-				maxLength={maxLength}
-				disabled={readonly || disabled}
-				error={error}
-				rightSection={<Text fz="sm">{unit}</Text>}
-				style={style}
-			/>
+			<Group align="center">
+				<Input
+					className="flex-1"
+					value={inputValue}
+					placeholder={definition.placeholder}
+					disabled={readonly || disabled}
+					error={error}
+					style={style}
+				/>
+				<Button onClick={handleSelectFolder} className="mt-2">
+					Select
+				</Button>
+			</Group>
 		</Input.Wrapper>
 	);
 }
-
-export default ConfigInput;

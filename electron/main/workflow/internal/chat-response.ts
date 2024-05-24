@@ -5,7 +5,6 @@ export async function executeChatResponse({ nodeInputs, globalContext, setGlobal
 	setGlobalContext &&
 		setGlobalContext({
 			...globalContext,
-			latestMessage: output,
-			messages: globalContext.messages.concat([output]),
+			outputMessage: output,
 		});
 }

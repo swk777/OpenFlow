@@ -30,6 +30,8 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
 	saveGlobal: (setting) => ipcRenderer.invoke('save-global', { setting }),
 	chat: (sessionId: string, workflowId: string, query: string, workflow: IWorkflow) =>
 		ipcRenderer.invoke('chat', { sessionId, workflowId, query, workflow }),
+	runAutomation: (workflowId: string, inputs: any, workflow: IWorkflow) =>
+		ipcRenderer.invoke('run-automation', { workflowId, inputs, workflow }),
 	newConversation: (workflowId: string) => ipcRenderer.invoke('new-conversation', { workflowId }),
 	saveConversation: (sessionId: string, conversation: IConversation) =>
 		ipcRenderer.invoke('save-conversation', { sessionId, conversation }),

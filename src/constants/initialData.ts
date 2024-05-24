@@ -9,4 +9,5 @@ export const DefaultData = {
 	workflows: [],
 	nodelets: Nodelets,
 	settings: {},
+	executions: [],
 };

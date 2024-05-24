@@ -1,17 +1,17 @@
-import { IConversation } from '@/type/conversation';
+import { IExecution } from '@/type/conversation';
 import { IDAGNode } from '@/type/dag';
 import { Nodelet } from '@/type/nodelet';
 import { InputsObject } from './type';
 
-export const getNodeInputObj = (node: IDAGNode, nodelet: Nodelet, conversation: IConversation) => {
+export const getNodeInputObj = (node: IDAGNode, nodelet: Nodelet, execution: IExecution) => {
 	const inputsObj: InputsObject = {};
 	if ((nodelet?.inputs || []).length === 0) return {};
 
 	nodelet?.inputs.forEach((input) => {
 		const { sourceHandle, id = '' } = node.sourceNodes.find((n) => n.targetHandle === input.id) || {}; // todo
-		const sourceOutput = conversation.nodeContext[id]?.outputs[sourceHandle!];
+		const sourceOutput = execution.nodeContext[id]?.outputs[sourceHandle!];
 		if (sourceOutput) {
-			inputsObj[input.id] = conversation.nodeContext[id]?.outputs[sourceHandle!];
+			inputsObj[input.id] = execution.nodeContext[id]?.outputs[sourceHandle!];
 		}
 	});
 	return inputsObj;
