@@ -35,6 +35,12 @@ jobs:
         if: runner.os == 'macOS'
         run: rm -rf /Users/runner/.cache/electron-builder
 
+      - name: Install system dependencies (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
