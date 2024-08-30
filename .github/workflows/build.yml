@@ -1,86 +1,42 @@
-name: Build
+name: Build and Release Electron App
 
 on:
   push:
     tags:
-      - 'v*.*.*'
-
-permissions:
-  contents: write
-  issues: write
-  deployments: write
-  pull-requests: write
-  statuses: write
+      - 'v*'
 
 jobs:
-  build:
+  release:
     runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        os: [macos-latest]
 
     steps:
-      - name: Checkout Code
+      - name: Check out Git repository
         uses: actions/checkout@v3
 
-      - name: Setup Node.js
+      - name: Install Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18
-
-      - name: Install Windows dependencies
-        if: runner.os == 'Windows'
-        run: |
-          choco install -y visualstudio2019buildtools visualstudio2019-workload-vctools
-          npm config set msvs_version 2019
-
-      - name: Install GTK for Windows
-        if: runner.os == 'Windows'
-        run: |
-          choco install -y gtk-runtime
-          echo "C:\Program Files\GTK2-Runtime\bin" >> $GITHUB_PATH
+          node-version: 16
 
       - name: Install Dependencies
-        run: npm install --legacy-peer-deps
+        run: npm ci
 
-      - name: Build Release Files
+      - name: Build Electron App
         run: npm run build
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: release_on_${{ matrix.os }}
-          path: release/
-          retention-days: 5
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v3
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
 
       - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            release/electron-vite-react*.exe
+            release/electron-vite-react*.dmg
+            release/electron-vite-react*.AppImage
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          body: This is the release for ${{ github.ref }}.
-          draft: false
-          prerelease: false
-
-      - name: Upload Release Assets
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./release_on_${{ matrix.os }}/*
-          asset_name: VisionFlow-${{ github.ref_name }}-${{ matrix.os }}.zip
-          asset_content_type: application/zip
