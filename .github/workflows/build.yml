@@ -35,8 +35,6 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            release/electron-vite-react*.exe
-            release/electron-vite-react*.dmg
-            release/electron-vite-react*.AppImage
+            release/0.0.8/VisionFlow_0.0.8.dmg
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
