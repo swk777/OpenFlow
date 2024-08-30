@@ -23,7 +23,7 @@ jobs:
           node-version: 16
 
       - name: Install Dependencies
-        run: npm ci
+        run: npm i
 
       - name: Build Electron App
         run: npm run build
