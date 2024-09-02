@@ -28,7 +28,7 @@ jobs:
       - name: Build Electron App
         run: npm run build
         env:
-          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -37,4 +37,4 @@ jobs:
           files: |
             release/0.0.8/VisionFlow_0.0.8.dmg
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
