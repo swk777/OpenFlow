@@ -20,9 +20,8 @@ function ConfigCheckbox({
       onChange={onChange}
       disabled={readonly}
       required={definition.required}
-    >
-      {definition.label}
-    </Checkbox>
+      label={definition.label}
+     />
   );
 }
 
