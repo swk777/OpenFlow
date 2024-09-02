@@ -36,5 +36,6 @@ jobs:
         with:
           files: |
             release/0.0.8/VisionFlow_0.0.8.dmg
+            release/0.0.8/VisionFlow_0.0.8.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
