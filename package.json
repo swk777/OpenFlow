@@ -1,6 +1,6 @@
 {
 	"name": "OpenFlow",
-	"version": "0.0.8",
+	"version": "0.0.2",
 	"main": "dist-electron/main/index.js",
 	"description": "OpenFlow is a local-first, extendable LLM (Large Language Model) orchestration app designed to streamline the running of LLM workflows locally.",
 	"author": {

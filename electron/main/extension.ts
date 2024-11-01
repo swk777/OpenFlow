@@ -46,7 +46,12 @@ const refreshNodelets = (extensions, db) => {
 export function refreshExtension(db) {
 	const workspacePath = globalThis.workspacePath;
 	const extensionPath = workspacePath + '/extensions';
-	const extensions = readExtensions(extensionPath);
-	refreshNodelets(extensions, db);
-	db.data.extensions = extensions;
+	try {
+		const extensions = readExtensions(extensionPath);
+		refreshNodelets(extensions, db);
+		db.data.extensions = extensions;
+	} catch (_) {
+		db.data.extensions = [];
+	}
+
 }
