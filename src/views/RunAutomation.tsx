@@ -27,7 +27,7 @@ export default function RunAutomation({ workflow }: Props) {
 			{inputNodes.map((inputNode) => {
 				const nodelet = nodelets.find((nodelet) => nodelet.id === inputNode.data.nodeletId);
 				return (
-					<Card shadow="sm" padding="xs" radius="xs" withBorder>
+					<Card shadow="sm" padding="xs" radius="xs" withBorder key={nodelet.id}>
 						<Text className="text-primary" fw={600} size="sm">
 							{inputNode.data.label}
 						</Text>

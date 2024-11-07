@@ -10,7 +10,7 @@ type Props = {};
 export default function Workflow({}: Props) {
 	let navigate = useNavigate();
 	return (
-		<main className="flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
+		<main className="flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 overflow-auto">
 			<div className="flex items-center mt-3">
 				<div className="ml-auto flex items-center gap-2 mt-4">
 					<Button
@@ -52,7 +52,7 @@ export default function Workflow({}: Props) {
 			</div>
 			<Space h="sm" />
 			<Space h="sm" />
-			<Card shadow="sm" radius="md" className="px-7 py-4 mb-6" withBorder>
+			<Card shadow="sm" radius="md" className="px-7 py-4 mb-6 overflow-hidden flex-1" withBorder>
 				<WorkflowList />
 			</Card>
 		</main>

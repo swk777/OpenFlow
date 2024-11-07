@@ -11,7 +11,7 @@ export async function executeOllama({
 	setNodeContext,
 }: NodeletExecuteContext) {
 	const { context = [], query = '' } = nodeInputs as { context: any[] | string; query: string | string[] };
-	const { model, systemPrompt, temperature, contextCount, prompt } = nodeConfig;
+	const { model, systemPrompt, temperature, contextCount, prompt = '' } = nodeConfig;
 	const { messages = [] } = nodeContext;
 	const { variables } = globalContext;
 	const ollama = new Ollama({ host: integrationConfig?.baseUrl || 'http://localhost:11434' });
