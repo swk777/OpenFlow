@@ -5,7 +5,7 @@ type Props = {};
 
 export default function ChooseWorkspace({}: Props) {
 	const handleSelectFolder = () => {
-		window.ipcRenderer.openDialog();
+		window.ipcRenderer.openWorkspaceDialog();
 	};
 
 	return (

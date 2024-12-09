@@ -1,8 +1,13 @@
+import { Nodelets } from '@/constants/nodelets';
+import { editWorkflowPrompt, generateWorkflowPrompt } from '@/constants/prompts';
 import { IConversation } from '@/type/conversation';
 import { IIntegration } from '@/type/integration';
 import { IKnowledgeBase } from '@/type/knowledgeBase';
 import { ISettings } from '@/type/misc';
 import { ITemplate } from '@/type/templates';
+import { createAnthropic } from '@ai-sdk/anthropic';
+import { createOpenAI } from '@ai-sdk/openai';
+import { generateText } from 'ai';
 import { ReactElement, createContext, useCallback, useEffect, useState } from 'react';
 import { DefaultData } from '../constants/initialData';
 import { INodelet } from '../type/nodelet';
@@ -33,6 +38,7 @@ interface IAppContext {
 	refreshConversations: () => void;
 	refreshWorkflows: () => void;
 	refreshSettings: () => void;
+	generateWorkflowByAI?: (prompt: string, workflow?: IWorkflow) => Promise<string>;
 }
 export const AppContext = createContext<IAppContext>({
 	//@ts-ignore
@@ -49,6 +55,7 @@ export const AppContext = createContext<IAppContext>({
 	refreshWorkflows: () => {},
 	refreshSettings: () => {},
 	refreshExtensions: () => {},
+	generateWorkflowByAI: () => Promise.resolve(''),
 });
 
 export function AppContextProvider(props: IProviderProps): ReactElement {
@@ -104,7 +111,42 @@ export function AppContextProvider(props: IProviderProps): ReactElement {
 	const refreshExtensions = async () => {
 		setExtensions(await window.ipcRenderer.getExtensions());
 	};
-
+	const generateWorkflowByAI = useCallback(async (prompt, workflow?) => {
+		const { playgroundModel = 'gpt-4o' } = settings;
+		const systemPrompt = workflow ? editWorkflowPrompt(Nodelets, integrations, workflow) : generateWorkflowPrompt(Nodelets, integrations);
+		let modelResponse = '';
+		if (playgroundModel === 'gpt-4o') {
+			const openai = createOpenAI({
+				apiKey: integrations.find((i) => i.id === 'OpenAI')?.config.apiKey,
+			});
+			const { text } = await generateText({
+				model: openai(playgroundModel),
+				system: systemPrompt,
+				prompt,
+			});
+			modelResponse = text;
+		} else if (playgroundModel === 'claude-3-5-sonnet-latest') {
+			try {
+				const anthropic = createAnthropic({
+					apiKey: integrations.find((i) => i.id === 'Claude')?.config.apiKey,
+					headers: {
+						'anthropic-dangerous-direct-browser-access': 'true',
+						'anthropic-version': '2023-06-01',
+						'content-type': 'application/json',
+					},
+				});
+				const { text } = await generateText({
+					model: anthropic(playgroundModel),
+					system: systemPrompt,
+					prompt,
+				});
+				modelResponse = text;
+			} catch (e) {
+				console.error(e);
+			}
+		}
+		return modelResponse;
+	}, []);
 	useEffect(() => {
 		window.ipcRenderer.getNodelets().then(setNodelets);
 		refreshExtensions();
@@ -138,6 +180,7 @@ export function AppContextProvider(props: IProviderProps): ReactElement {
 				updateIntegration,
 				refreshSettings,
 				refreshKnowledgeBase,
+				generateWorkflowByAI,
 			}}
 		>
 			{children}

@@ -8,7 +8,7 @@ interface LinksGroupProps {
 	icon: React.FC<any>;
 	label: string;
 	initiallyOpened?: boolean;
-	links?: { label: string; link: string; bold?: boolean }[];
+	links?: { label: string; link: string; selected?: boolean }[];
 	style?: React.CSSProperties;
 }
 
@@ -19,10 +19,10 @@ export function LinksGroup({ icon: Icon, label, initiallyOpened, links }: LinksG
 	const items = (hasLinks ? links : []).map((link) => (
 		<Text<'a'>
 			component="a"
-			className="cursor-pointer text-left max-w-44 block border-l mx-8 font-medium py-2 pl-6 truncate text-gray-500 text-sm hover:text-gray-700"
+			className={`cursor-pointer text-left max-w-44 block border-l mx-8 font-medium py-2 pl-6 truncate ${link.selected ? 'text-blue-500' : 'text-gray-500'} text-sm hover:text-gray-700`}
 			key={link.label}
 			onClick={() => navigate(link.link)}
-			fw={link.bold ? 600 : 400}
+			fw={link.selected ? 600 : 400}
 		>
 			{link.label}
 		</Text>

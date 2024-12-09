@@ -4,9 +4,11 @@ import { WorkflowContextProvider } from '@/context/WorkflowContext';
 import useValidate from '@/hooks/useValidate';
 import Configuration from '@/node/config/Configuration';
 import InternalNode from '@/node/InternalNode';
+import { IWorkflow } from '@/type/workflow';
 import { buildDefaultConfig } from '@/utils/utils';
-import { ActionIcon, Drawer, TextInput } from '@mantine/core';
-import { IconRobot } from '@tabler/icons-react';
+import { ActionIcon, Drawer, LoadingOverlay, TextInput } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconRobot, IconSend } from '@tabler/icons-react';
 import { MouseEvent, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import ReactFlow, {
 	addEdge,
@@ -22,13 +24,14 @@ import ReactFlow, {
 } from 'reactflow';
 import { v4 as uuidv4 } from 'uuid';
 
-type Props = { workflowId: string };
+type Props = { workflow?: IWorkflow; workflowId: string; onWorkflowChange?: (workflow: IWorkflow) => void };
 const nodeTypes = { internalNodelet: InternalNode };
 
-export default function WorkflowEdit({ workflowId }: Props) {
-	const { nodelets, workflows, integrations } = useContext(AppContext);
-	const workflow = workflows.find((w) => w.id === workflowId) || getInitialWorkflow(workflowId);
-
+export default function WorkflowEdit({ workflow: wf, workflowId, onWorkflowChange }: Props) {
+	const { nodelets, workflows, integrations, generateWorkflowByAI } = useContext(AppContext);
+	const initialWorkflow = wf || workflows.find((w) => w.id === workflowId) || getInitialWorkflow(workflowId);
+	const [workflow] = useState(initialWorkflow);
+	const [overlayVisible, setOverlayVisible] = useState(false);
 	const [nodes, setNodes, onNodesChange] = useNodesState(workflow?.data?.nodes || []);
 	const [edges, setEdges, onEdgesChange] = useEdgesState(workflow?.data?.edges || []);
 	const reactFlowWrapper = useRef(null);
@@ -121,6 +124,29 @@ export default function WorkflowEdit({ workflowId }: Props) {
 								<TextInput
 									placeholder="Enter your prompt..."
 									value={aiPrompt}
+									rightSection={
+										<IconSend
+											onClick={async () => {
+												if (!aiPrompt.trim()) return;
+												setOverlayVisible(true);
+												try {
+													const newWorkflowText = await generateWorkflowByAI(aiPrompt, workflow);
+													const wf = JSON.parse(newWorkflowText);
+													setNodes(wf.data.nodes);
+													setEdges(wf.data.edges);
+												} catch (error) {
+													notifications.show({
+														title: error.message,
+														message: '',
+														color: 'red',
+													});
+												}
+
+												setOverlayVisible(false);
+											}}
+											className="text-blue-500 cursor-pointer"
+										/>
+									}
 									onChange={(e) => setAiPrompt(e.target.value)}
 									onBlur={() => {
 										if (!aiPrompt) {
@@ -130,17 +156,18 @@ export default function WorkflowEdit({ workflowId }: Props) {
 									}}
 									onKeyDown={(e) => {
 										if (e.key === 'Enter' && aiPrompt) {
-											console.log('AI Prompt:', aiPrompt);
 											setAiPrompt('');
 											setInputWidth('40px');
 											setTimeout(() => setShowAiInput(false), 300);
 										}
 									}}
 									autoFocus
-									className="min-w-[40rem]"
+									className="min-w-[30rem]"
 									styles={{
 										input: {
 											transition: 'all 0.3s ease',
+											zIndex: 9999,
+											width: '100%',
 											height: '40px',
 											'&:focus': {
 												borderColor: 'var(--mantine-color-blue-5)',
@@ -167,8 +194,26 @@ export default function WorkflowEdit({ workflowId }: Props) {
 							};
 						})}
 						edges={edges}
-						onNodesChange={onNodesChange}
-						onEdgesChange={onEdgesChange}
+						onNodesChange={(changes) => {
+							onNodesChange(changes);
+							onWorkflowChange({
+								...workflow,
+								data: {
+									nodes,
+									edges,
+								},
+							});
+						}}
+						onEdgesChange={(changes) => {
+							onEdgesChange(changes);
+							onWorkflowChange({
+								...workflow,
+								data: {
+									nodes,
+									edges,
+								},
+							});
+						}}
 						onConnect={onConnect}
 						className="absolute bottom-0 left-0 top-0 right-0"
 						nodeTypes={nodeTypes}
@@ -184,6 +229,7 @@ export default function WorkflowEdit({ workflowId }: Props) {
 						<MiniMap />
 						<Controls />
 						<Background />
+						<LoadingOverlay visible={overlayVisible} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
 					</ReactFlow>
 				</div>
 			</WorkflowContextProvider>
@@ -209,14 +255,22 @@ export default function WorkflowEdit({ workflowId }: Props) {
 					style={{ padding: '20px 0' }}
 					onChange={(config) => {
 						const selectedNodeIndex = nodes.findIndex((node) => node.id === selectedNode?.id);
-						setNodes([
+						const newNodes = [
 							...nodes.slice(0, selectedNodeIndex),
 							{
 								...selectedNode,
 								data: { ...selectedNode?.data, config },
 							},
 							...nodes.slice(selectedNodeIndex + 1),
-						] as Node[]);
+						] as Node[];
+						setNodes(newNodes);
+						onWorkflowChange({
+							...workflow,
+							data: {
+								nodes: newNodes,
+								edges,
+							},
+						});
 					}}
 				/>
 			</Drawer>
