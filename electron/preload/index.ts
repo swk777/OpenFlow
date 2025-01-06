@@ -36,6 +36,7 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
 	runAutomation: (workflowId: string, inputs: any, workflow: IWorkflow) =>
 		ipcRenderer.invoke('run-automation', { workflowId, inputs, workflow }),
 	newConversation: (workflowId: string) => ipcRenderer.invoke('new-conversation', { workflowId }),
+	deleteWorkflow: (workflowId: string) => ipcRenderer.invoke('delete-workflow', { workflowId }),
 	saveConversation: (sessionId: string, conversation: IConversation) =>
 		ipcRenderer.invoke('save-conversation', { sessionId, conversation }),
 	openDialog: () => ipcRenderer.invoke('open-directory-dialog'),

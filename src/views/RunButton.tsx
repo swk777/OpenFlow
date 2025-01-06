@@ -1,22 +1,33 @@
+import { AppContext } from '@/context/AppContext';
 import { IWorkflow, IWorkflowCategory } from '@/type/workflow';
+import { getMissIntegrations } from '@/utils/utils';
 import { Button, Drawer, Modal } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { IconBrandHipchat, IconPlayerPlay } from '@tabler/icons-react';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import ChatWorkflow from './ChatWorkflow';
+import IntegrationComplement from './IntegrationComplement';
 import RunAutomation from './RunAutomation';
 
 type Props = { category: IWorkflowCategory; workflow: IWorkflow };
 
 export default function RunButton({ category, workflow }: Props) {
 	const [chatOpened, setChatOpened] = useState(false);
+	const { integrations } = useContext(AppContext);
 	const [inputsModalOpened, { open, close }] = useDisclosure(false);
+	const [integrationModalOpened, { open: openIntegrationModal, close: closeIntegrationModal }] = useDisclosure(false);
+	const missIntegrations = getMissIntegrations(workflow.data.nodes, integrations);
+
 	return (
 		<>
 			<Button
 				size="sm"
 				className="h-7 gap-1"
 				onClick={() => {
+					if (missIntegrations.length > 0) {
+						openIntegrationModal();
+						return;
+					}
 					if (category === IWorkflowCategory.Chatbot) {
 						setChatOpened(true);
 					} else {
@@ -52,6 +63,14 @@ export default function RunButton({ category, workflow }: Props) {
 					}
 				/>
 			</Drawer>
+			<Modal opened={integrationModalOpened} size="lg" onClose={closeIntegrationModal} title="Complete Integrations">
+				<IntegrationComplement
+					integrations={[...missIntegrations]}
+					onSave={() => {
+						closeIntegrationModal();
+					}}
+				/>
+			</Modal>
 			<Modal opened={inputsModalOpened} size="lg" onClose={close} title="Run Automation">
 				<RunAutomation workflow={{ ...workflow }} />
 			</Modal>
