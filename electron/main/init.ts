@@ -102,6 +102,14 @@ export function initStorage(ipcMain, workspacePath) {
 				const { workflowId, query = '' } = post;
 				return await newConversation(workflowId, query, db);
 			});
+			ipcMain.handle('delete-workflow', async (event, post) => {
+				await db.read();
+				const { workflowId } = post;
+				return await db.update(({ workflows }) => {
+					const workflowIdx = workflows.findIndex((w) => w.id === workflowId);
+					workflows.splice(workflowIdx, 1);
+				});
+			});
 			ipcMain.handle('save-conversation', async (event, post) => {
 				await db.read();
 				const { sessionId, conversation } = post;

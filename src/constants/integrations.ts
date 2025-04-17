@@ -23,7 +23,20 @@ export const Integrations: IIntegration[] = [
 		],
 		config: {},
 	},
-
+	{
+		id: 'Claude',
+		label: 'Claude',
+		configDefinitions: [
+			{
+				label: 'API Key:',
+				fieldName: 'apiKey',
+				type: ConfigurationType.INPUT,
+				placeholder: '',
+				required: true,
+			},
+		],
+		config: {},
+	},
 	{
 		id: 'FireCrawl',
 		label: 'FireCrawl',
@@ -70,6 +83,20 @@ export const Integrations: IIntegration[] = [
 				fieldName: 'apiKey',
 				type: ConfigurationType.INPUT,
 				placeholder: 'sk-xxxx',
+				required: true,
+			},
+		],
+		config: {},
+	},
+	{
+		id: 'SaveToObsidian',
+		label: 'Obsidian',
+		configDefinitions: [
+			{
+				label: 'Obsidian vault path:',
+				fieldName: 'vaultPath',
+				type: ConfigurationType.FOLDER_PATH_CHOOSER,
+				placeholder: 'path',
 				required: true,
 			},
 		],

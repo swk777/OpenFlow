@@ -3,14 +3,14 @@ import { useContext, useRef } from 'react';
 import { AppContext } from '@/context/AppContext';
 import { Badge, Container, Flex, Modal, Stack, Table, Text } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconArticle, IconPencil, IconPlayerPlay } from '@tabler/icons-react';
+import { IconArticle, IconPencil, IconPlayerPlay, IconTrash } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import RunAutomation from './RunAutomation';
 
 type Props = {};
 
 export default function WorkflowList({}: Props) {
-	const { workflows = [] } = useContext(AppContext);
+	const { workflows = [], refreshWorkflows } = useContext(AppContext);
 	const navigate = useNavigate();
 	const [inputsModalOpened, { open, close }] = useDisclosure(false);
 	const currentWorkflowId = useRef('');
@@ -69,6 +69,14 @@ export default function WorkflowList({}: Props) {
 										size={16}
 										onClick={() => {
 											navigate(`/workflow-edit/${id}`);
+										}}
+										className="text-primary cursor-pointer"
+									/>
+									<IconTrash
+										size={16}
+										onClick={async () => {
+											await window.ipcRenderer.deleteWorkflow(id);
+											refreshWorkflows();
 										}}
 										className="text-primary cursor-pointer"
 									/>

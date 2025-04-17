@@ -14,7 +14,7 @@ export async function executeOpenAI({
 	setNodeContext,
 }: NodeletExecuteContext) {
 	const { context = [], query = '' } = nodeInputs as { context: any[]; query: string | string[] };
-	const { model, systemPrompt, temperature, contextCount, prompt = '' } = nodeConfig;
+	const { model, systemPrompt, temperature, contextCount, prompt = '${query}' } = nodeConfig;
 	const { messages = [] } = nodeContext;
 	const combinedContext = Array.isArray(context) ? context.join('') : context;
 	const openaiParams: { apiKey: string; organization?: string; baseURL?: string } = {
@@ -45,6 +45,7 @@ export async function executeOpenAI({
 			temperature: parseFloat(temperature),
 		});
 		const returnMessage = chatCompletion.choices[0].message;
+		console.log(returnMessage);
 		completeMessages.push(returnMessage);
 		setNodeContext &&
 			setNodeContext({

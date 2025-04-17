@@ -9,7 +9,7 @@ export const DefaultData = {
 	conversations: [],
 	workflows: [],
 	nodelets: Nodelets,
-	settings: {},
+	settings: { playgroundModel: 'gpt-4o' },
 	executions: [],
 	extensions: [],
 	templates: Templates,

@@ -1,4 +1,5 @@
 import { createTheme, MantineProvider } from '@mantine/core';
+
 import '@mantine/core/styles.css';
 import { Notifications } from '@mantine/notifications';
 import '@mantine/notifications/styles.css';
@@ -7,9 +8,7 @@ import './App.css';
 import { WorkspaceProvider } from './context/WorkspaceContext';
 import MainRouter from './views/MainRouter';
 
-const theme = createTheme({
-	/** Put your mantine theme override here */
-});
+const theme = createTheme({});
 
 function App() {
 	return (

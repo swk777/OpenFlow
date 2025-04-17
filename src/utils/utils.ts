@@ -30,3 +30,16 @@ export function getRandomColor(id: string) {
 
 	return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
+
+export const isEmpty = (obj: any) =>
+	!obj || (Array.isArray(obj) && obj.length === 0) || (typeof obj === 'object' && Object.keys(obj).length === 0);
+
+export const getMissIntegrations = (nodes, integrations) =>
+	nodes
+		.filter((n) => {
+			const integration = integrations.find((i) => i.id === n.data.nodeletId);
+			return integration && integration.configDefinitions.some((cd) => cd.required && isEmpty(integration.config[cd.fieldName]));
+		})
+		.map((n) => {
+			return integrations.find((i) => i.id === n.data.nodeletId);
+		});

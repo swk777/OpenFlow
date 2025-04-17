@@ -15,7 +15,7 @@ const getIntegrationsLinksData = (integrations: IIntegration[], integrationId: s
 		initiallyOpened: true,
 		links: integrations.map((integration) => ({
 			id: integration.id,
-			bold: integrationId === integration.id,
+			selected: integrationId === integration.id,
 			label: integration.label,
 			link: `/integration/${integration.id}`,
 		})),

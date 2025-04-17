@@ -50,6 +50,12 @@ ipcMain.handle('open-directory-dialog', async (event) => {
 	const result = await dialog.showOpenDialog({
 		properties: ['openDirectory'],
 	});
+	return result.filePaths[0];
+});
+ipcMain.handle('open-workspace-dialog', async (event) => {
+	const result = await dialog.showOpenDialog({
+		properties: ['openDirectory'],
+	});
 	store.set('workspacePath', result.filePaths[0]);
 	initStorage(ipcMain, result.filePaths[0]);
 	win.webContents.send('workspace-set', result.filePaths[0]);
@@ -62,7 +68,6 @@ if (store.get('workspacePath')) {
 	initStorage(ipcMain, store.get('workspacePath'));
 }
 
-// const db = new Low(adapter);
 async function createWindow() {
 	const args = (process.argv || []).length > 0 ? process.argv.slice(1) : '';
 	if (args.includes('--open-modal')) {
