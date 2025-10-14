@@ -102,4 +102,17 @@ export const Integrations: IIntegration[] = [
 		],
 		config: {},
 	},
+	{
+		id: 'Search',
+		label: 'Tavily Search',
+		configDefinitions: [
+			{
+				label: 'Tavily API Key:',
+				fieldName: 'apiKey',
+				type: ConfigurationType.INPUT,
+				required: true,
+			},
+		],
+		config: {},
+	},
 ];

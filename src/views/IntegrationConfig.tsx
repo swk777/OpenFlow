@@ -7,7 +7,7 @@ import { useContext, useState } from 'react';
 type Props = { id?: string };
 
 export default function IntegrationConfig({ id }: Props) {
-	const { integrations, updateIntegration } = useContext(AppContext);
+	const { integrations, updateIntegration, refreshIntegrations } = useContext(AppContext);
 	const [loading, setLoading] = useState(false);
 	const integration = integrations.find((i) => i.id === id) || integrations[0];
 	const [config, setConfig] = useState(integration?.config || {});
@@ -29,12 +29,18 @@ export default function IntegrationConfig({ id }: Props) {
 				loading={loading}
 				onClick={() => {
 					setLoading(true);
+					console.log(integration?.id);
+					console.log({
+						...integration,
+						config,
+					});
 					updateIntegration &&
 						updateIntegration(integration?.id, {
 							...integration,
 							config,
 						}).then(() => {
 							setLoading(false);
+							refreshIntegrations();
 							notifications.show({
 								title: 'Save Successfully',
 								message: '',

@@ -1,5 +1,6 @@
 export enum ConfigurationType {
 	INPUT = 'INPUT',
+	FILE = 'FILE',
 	TAGS = 'TAGS',
 	NUMBER = 'NUMBER',
 	BOOLEAN = 'BOOLEAN',

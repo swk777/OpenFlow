@@ -13,21 +13,22 @@ import RunButton from './RunButton';
 
 const nodeTypes = { internalNodelet: InternalNode };
 export default function Playground() {
-	const { settings, integrations, updateWorkflow, refreshSettings, generateWorkflowByAI } = useContext(AppContext);
+	const { settings, updateWorkflow, refreshSettings, generateWorkflowByAI } = useContext(AppContext);
 
 	const navigate = useNavigate();
-	const { playgroundModel = 'gpt-4o' } = settings;
+	const { playgroundModel = 'gpt-5' } = settings;
 	const [isSubmitted, setIsSubmitted] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [prompt, setPrompt] = useState('');
 	const [workflow, setWorkflow] = useState<IWorkflow>();
-
+	console.log(playgroundModel);
 	const handleSubmit = async () => {
 		if (!prompt.trim()) return;
 		setIsLoading(true);
 		let modelResponse = '';
 		try {
 			modelResponse = await generateWorkflowByAI(prompt, playgroundModel);
+			console.log(modelResponse);
 		} catch (error) {
 			notifications.show({
 				title: error.message,
@@ -57,8 +58,8 @@ export default function Playground() {
 		},
 	};
 	const icons: Record<string, React.ReactNode> = {
-		'gpt-4o': <IconSettings {...iconProps} {...settingIconProps} data-id="OpenAI" />,
-		'claude-3-5-sonnet-latest': <IconSettings {...iconProps} {...settingIconProps} data-id="Claude" />,
+		'gpt-5': <IconSettings {...iconProps} {...settingIconProps} data-id="OpenAI" />,
+		'claude-sonnet-4-5': <IconSettings {...iconProps} {...settingIconProps} data-id="Claude" />,
 	};
 
 	const renderSelectOption: SelectProps['renderOption'] = ({ option, checked }) => (
@@ -114,8 +115,8 @@ export default function Playground() {
 										});
 									}}
 									data={[
-										{ value: 'claude-3-5-sonnet-latest', label: 'claude-3.5-sonnet' },
-										{ value: 'gpt-4o', label: 'gpt-4o' },
+										{ value: 'claude-sonnet-4-5', label: 'claude-4.5' },
+										{ value: 'gpt-5', label: 'gpt-5' },
 									]}
 									size="xs"
 									w="134"

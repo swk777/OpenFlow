@@ -16,12 +16,10 @@ export enum NodeletOutputType {
 }
 export interface NodeletInput {
 	id: string;
-	name: string;
 	type: NodeletInputType;
 }
 export interface NodeletOutput {
 	id: string;
-	name: string;
 	type: NodeletOutputType;
 }
 export interface INodelet {
@@ -37,6 +35,7 @@ export interface INodelet {
 	outputs: NodeletOutput[];
 	configDefinitions: IConfigBaseExtend<any>;
 	codePath?: string;
+	isAsync?: boolean;
 }
 
 export enum WorkflowCategory {

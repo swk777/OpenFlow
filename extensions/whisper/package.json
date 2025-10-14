@@ -1,0 +1,29 @@
+{
+	"name": "whisper",
+	"version": "1.0.0",
+	"description": "Electron Plugin Boilerplate with esbuild",
+	"main": "dist/main.js",
+	"scripts": {
+		"dev": "node esbuild.config.js --dev",
+		"build": "node esbuild.config.js",
+		"watch": "node esbuild.config.js --watch"
+	},
+	"keywords": [
+		"electron",
+		"plugin",
+		"esbuild"
+	],
+	"author": "Your Name",
+	"license": "MIT",
+	"devDependencies": {
+		"esbuild": "latest"
+	},
+	"dependencies": {
+		"@ffmpeg/ffmpeg": "^0.12.15",
+		"@ffmpeg/util": "^0.12.2",
+		"buffer": "^6.0.3",
+		"ffmpeg-static": "^5.2.0",
+		"ffmpeg.js": "^4.2.9003",
+		"fluent-ffmpeg": "^2.1.3"
+	}
+}

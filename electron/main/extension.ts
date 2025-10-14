@@ -30,7 +30,7 @@ function readExtensions(extensionsDir) {
 
 	return extensions;
 }
-const refreshNodelets = (extensions, db) => {
+const refreshNodelets = async (extensions, db) => {
 	// 遍历所有扩展
 	for (const extension of extensions) {
 		const { codePath, config } = extension;
@@ -39,19 +39,18 @@ const refreshNodelets = (extensions, db) => {
 		if (nodeletIndex === -1) {
 			db.data.nodelets.push({ ...extension.config, codePath });
 		} else {
-			db.data.nodelets[nodeletIndex] = { ...extension.config, codePath };
+			await db.update(({ nodelets }) => (nodelets[nodeletIndex] = { ...extension.config, codePath }));
 		}
 	}
 };
-export function refreshExtension(db) {
+export async function refreshExtension(db) {
 	const workspacePath = globalThis.workspacePath;
 	const extensionPath = workspacePath + '/extensions';
 	try {
 		const extensions = readExtensions(extensionPath);
-		refreshNodelets(extensions, db);
+		await refreshNodelets(extensions, db);
 		db.data.extensions = extensions;
 	} catch (_) {
 		db.data.extensions = [];
 	}
-
 }

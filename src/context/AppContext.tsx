@@ -1,4 +1,3 @@
-import { Nodelets } from '@/constants/nodelets';
 import { editWorkflowPrompt, generateWorkflowPrompt } from '@/constants/prompts';
 import { IConversation } from '@/type/conversation';
 import { IIntegration } from '@/type/integration';
@@ -8,6 +7,7 @@ import { ITemplate } from '@/type/templates';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { createOpenAI } from '@ai-sdk/openai';
 import { generateText } from 'ai';
+import { jsonrepair } from 'jsonrepair';
 import { ReactElement, createContext, useCallback, useEffect, useState } from 'react';
 import { DefaultData } from '../constants/initialData';
 import { INodelet } from '../type/nodelet';
@@ -33,11 +33,13 @@ interface IAppContext {
 	setKnowledgeBases?: (newData: IKnowledgeBase[]) => void;
 	updateWorkflow?: (workflowId: string, newData: IWorkflow) => Promise<void>;
 	updateIntegration?: (integrationId: string, newData: IIntegration) => Promise<void>;
+	refreshNodelets: () => void;
 	refreshExtensions: () => void;
 	refreshKnowledgeBase: () => void;
 	refreshConversations: () => void;
 	refreshWorkflows: () => void;
 	refreshSettings: () => void;
+	refreshIntegrations: () => void;
 	generateWorkflowByAI?: (prompt: string, workflow?: IWorkflow) => Promise<string>;
 }
 export const AppContext = createContext<IAppContext>({
@@ -50,6 +52,7 @@ export const AppContext = createContext<IAppContext>({
 	knowledgeBases: DefaultData.knowledgeBases,
 	conversations: [],
 	extensions: [],
+	refreshNodelets: () => {},
 	refreshKnowledgeBase: () => {},
 	refreshConversations: () => {},
 	refreshWorkflows: () => {},
@@ -84,6 +87,7 @@ export function AppContextProvider(props: IProviderProps): ReactElement {
 	const updateIntegration = useCallback(
 		async (integrationId: string, newData: IIntegration) => {
 			const IntegrationIdx = integrations.findIndex((wf) => wf.id === integrationId);
+			console.log(IntegrationIdx);
 			const newIntegrations = await window.ipcRenderer.saveIntegration(IntegrationIdx, newData);
 			setIntegrations(newIntegrations);
 		},
@@ -109,46 +113,63 @@ export function AppContextProvider(props: IProviderProps): ReactElement {
 		setSettings(await window.ipcRenderer.getSettings());
 	};
 	const refreshExtensions = async () => {
-		setExtensions(await window.ipcRenderer.getExtensions());
+		setExtensions(await window.ipcRenderer.refreshExtensions());
+		refreshNodelets();
 	};
-	const generateWorkflowByAI = useCallback(async (prompt, workflow?) => {
-		const { playgroundModel = 'gpt-4o' } = settings;
-		const systemPrompt = workflow ? editWorkflowPrompt(Nodelets, integrations, workflow) : generateWorkflowPrompt(Nodelets, integrations);
-		let modelResponse = '';
-		if (playgroundModel === 'gpt-4o') {
-			const openai = createOpenAI({
-				apiKey: integrations.find((i) => i.id === 'OpenAI')?.config.apiKey,
-			});
-			const { text } = await generateText({
-				model: openai(playgroundModel),
-				system: systemPrompt,
-				prompt,
-			});
-			modelResponse = text;
-		} else if (playgroundModel === 'claude-3-5-sonnet-latest') {
-			try {
-				const anthropic = createAnthropic({
-					apiKey: integrations.find((i) => i.id === 'Claude')?.config.apiKey,
-					headers: {
-						'anthropic-dangerous-direct-browser-access': 'true',
-						'anthropic-version': '2023-06-01',
-						'content-type': 'application/json',
-					},
+	const refreshNodelets = async () => {
+		setNodelets(await window.ipcRenderer.getNodelets());
+	};
+	const generateWorkflowByAI = useCallback(
+		async (prompt, workflow?) => {
+			const { playgroundModel = 'gpt-5' } = settings;
+			console.log(playgroundModel);
+			console.log(workflow);
+			console.log(nodelets);
+			const systemPrompt = workflow ? editWorkflowPrompt(nodelets, integrations, workflow) : generateWorkflowPrompt(nodelets, integrations);
+			let modelResponse = '';
+			console.log(playgroundModel === 'gpt-5');
+			if (playgroundModel === 'gpt-5') {
+				console.log('key');
+				console.log(integrations.find((i) => i.id === 'OpenAI')?.config.apiKey);
+				const openai = createOpenAI({
+					apiKey: integrations.find((i) => i.id === 'OpenAI')?.config.apiKey,
 				});
 				const { text } = await generateText({
-					model: anthropic(playgroundModel),
+					model: openai(playgroundModel),
 					system: systemPrompt,
 					prompt,
+					temperature: 1,
 				});
+				console.log(text);
 				modelResponse = text;
-			} catch (e) {
-				console.error(e);
+			} else if (playgroundModel === 'claude-sonnet-4-5') {
+				console.log(integrations.find((i) => i.id === 'Claude')?.config.apiKey);
+				try {
+					const anthropic = createAnthropic({
+						apiKey: integrations.find((i) => i.id === 'Claude')?.config.apiKey,
+						headers: {
+							'anthropic-dangerous-direct-browser-access': 'true',
+							'anthropic-version': '2023-06-01',
+							'content-type': 'application/json',
+						},
+					});
+					const { text } = await generateText({
+						model: anthropic(playgroundModel),
+						system: systemPrompt,
+						prompt,
+					});
+					console.log(text);
+					modelResponse = jsonrepair(text);
+				} catch (e) {
+					console.error(e);
+				}
 			}
-		}
-		return modelResponse;
-	}, []);
+			return modelResponse;
+		},
+		[nodelets],
+	);
 	useEffect(() => {
-		window.ipcRenderer.getNodelets().then(setNodelets);
+		refreshNodelets();
 		refreshExtensions();
 		refreshWorkflows();
 		refreshKnowledgeBase();
@@ -174,10 +195,12 @@ export function AppContextProvider(props: IProviderProps): ReactElement {
 				setNodelets,
 				setKnowledgeBases,
 				refreshWorkflows,
+				refreshNodelets,
 				refreshExtensions,
 				refreshConversations,
 				updateWorkflow,
 				updateIntegration,
+				refreshIntegrations,
 				refreshSettings,
 				refreshKnowledgeBase,
 				generateWorkflowByAI,

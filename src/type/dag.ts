@@ -5,4 +5,5 @@ export interface IDAGNode extends Node {
 	sourceNodes: IDAGNode[];
 	sourceHandle?: string | null;
 	targetHandle?: string | null;
+	conditionValue?: boolean;
 }

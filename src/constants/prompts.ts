@@ -27,9 +27,10 @@ export const generateWorkflowPrompt = (nodelets, integrations, userPreference?) 
 - Your task is to help users generate the workflow structure based on the system description including concepts and examples below
 
 ## Instructions
-- import! Remember just output the raw json structure (not markdown and enclosed in {}) in the form of the workflow structure provided on the bottom based on react-flow and get rid of other unwanted descriptions  
+- import! Remember just output the parsable raw json structure which can be parsed by JSON.parse in the form of the workflow structure provided on the bottom based on react-flow and get rid of other unwanted descriptions  
 - the whole workflow structure  is an DAG and take serious notice with the input and output type and only the same NodeletOutputType/NodeletIutputType type can be connected
 - Use the AI model configured in the integrations as a priority.
+- import! Remember use inputs or outputs id (not name) as edge sourceHandle and targetHandle value
 
 ## User Preference(as the highest priority)
 ${userPreference}
@@ -161,7 +162,7 @@ ${JSON.stringify(workflow)}
 ———— Current Workflow data structure begin ————
 
 ## Instructions
-- import! Remember just output the raw json structure (not markdown and enclosed in {}) in the form of the workflow structure provided on the bottom based on react-flow and get rid of other unwanted descriptions  
+- import! Remember just output the parsable raw json structure in the form of the workflow structure provided on the bottom based on react-flow and get rid of other unwanted descriptions  
 - the whole workflow structure  is an DAG and take serious notice with the input and output type and only the same NodeletOutputType/NodeletIutputType type can be connected
 - Use the AI model configured in the integrations as a priority.
 

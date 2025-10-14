@@ -2,6 +2,7 @@ import { NodeletExecuteContext } from '../type';
 
 export async function executeDisplayOnScreen({ nodelet, nodeInputs, globalContext, setGlobalContext, node }: NodeletExecuteContext) {
 	const { displayContent } = nodeInputs as { displayContent: string };
+	console.log(displayContent);
 	console.log(globalContext.outputMessage);
 	setGlobalContext &&
 		setGlobalContext({

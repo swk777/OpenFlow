@@ -55,7 +55,6 @@ export async function executeClaude({
 
 		const returnMessage = { role: 'assistant', content: completion.content };
 		completeMessages.push(returnMessage);
-		console.log(returnMessage);
 		setNodeContext &&
 			setNodeContext({
 				...nodeContext,

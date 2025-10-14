@@ -45,7 +45,6 @@ export async function executeOpenAI({
 			temperature: parseFloat(temperature),
 		});
 		const returnMessage = chatCompletion.choices[0].message;
-		console.log(returnMessage);
 		completeMessages.push(returnMessage);
 		setNodeContext &&
 			setNodeContext({

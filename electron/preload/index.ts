@@ -39,7 +39,7 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
 	deleteWorkflow: (workflowId: string) => ipcRenderer.invoke('delete-workflow', { workflowId }),
 	saveConversation: (sessionId: string, conversation: IConversation) =>
 		ipcRenderer.invoke('save-conversation', { sessionId, conversation }),
-	openDialog: () => ipcRenderer.invoke('open-directory-dialog'),
+	openDialog: (isFile: boolean) => ipcRenderer.invoke('open-directory-dialog', {isFile}),
 	openWorkspaceDialog: () => ipcRenderer.invoke('open-workspace-dialog'),
 	openNewWindow: () => ipcRenderer.send('open-modal'),
 	on(...args: Parameters<typeof ipcRenderer.on>) {

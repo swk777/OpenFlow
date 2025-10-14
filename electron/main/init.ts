@@ -5,10 +5,11 @@ import { addDocuments, createKnowledgeBase } from './knowledgeBase';
 import { chat, newConversation, runAutomation } from './workflow/execution';
 
 export function initStorage(ipcMain, workspacePath) {
+	console.log(workspacePath);
 	globalThis.workspacePath = workspacePath;
 	JSONFilePreset(`${workspacePath}/storage.json`, DefaultData)
 		.then(async (db) => {
-			refreshExtension(db);
+			await refreshExtension(db);
 			await db.write();
 			ipcMain.handle('add-workflow', async (event, post) => {
 				await db.read();
@@ -81,9 +82,9 @@ export function initStorage(ipcMain, workspacePath) {
 				return db.data.integrations;
 			});
 			ipcMain.handle('refresh-extensions', async (event, post) => {
-				refreshExtension(db);
+				await refreshExtension(db);
 				await db.write();
-				// return db.data.integrations;
+				return db.data.extensions;
 			});
 			ipcMain.handle('chat', async (event, post) => {
 				await db.read();

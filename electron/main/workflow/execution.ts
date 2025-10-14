@@ -1,5 +1,7 @@
 import { InternalNodelets } from '@/constants/nodelets';
 import { IDAGNode } from '@/type/dag';
+import fs from 'node:fs';
+
 import { IIntegration } from '@/type/integration';
 import { ISettings } from '@/type/misc';
 import { INodelet } from '@/type/nodelet';
@@ -13,28 +15,45 @@ import { IKnowledgeBase } from '../../../src/type/knowledgeBase';
 import ExecutionError from '../error/ExecutionError';
 import { InternalNodeletExecutor } from './node-executors';
 import { executeCustom } from './node-executors/custom';
-import { getNodeInputObj } from './utils';
+import { checkConditionNode, getNodeInputObj } from './utils';
 interface IContext {
 	knowledgeBases: IKnowledgeBase[];
 	integrations: IIntegration[];
 	settings: ISettings;
+	conditionValue?: boolean;
 }
-const getNewExecution = (workflowId: string) => ({
-	executionId: uuidv4(),
-	workflowId,
-	createDate: new Date().toLocaleString(),
-	updateDate: new Date().toLocaleString(),
-	nodeContext: {},
-	globalContext: { variables: {}, errors: [] },
-});
-const getNewConversationExecution = (workflowId: string, message: string) => ({
-	executionId: uuidv4(),
-	workflowId,
-	createDate: new Date().toLocaleString(),
-	updateDate: new Date().toLocaleString(),
-	nodeContext: {},
-	globalContext: { userInput: message, variables: {} },
-});
+const getNewExecution = (workflowId: string) => {
+	const executionId = uuidv4();
+	return {
+		executionId,
+		workflowId,
+		createDate: new Date().toLocaleString(),
+		updateDate: new Date().toLocaleString(),
+		nodeContext: {},
+		globalContext: {
+			variables: {},
+			errors: [],
+			workspacePath: globalThis.workspacePath,
+			tempPath: `${globalThis.workspacePath}/temp/${executionId}`,
+		},
+	};
+};
+const getNewConversationExecution = (workflowId: string, message: string) => {
+	const executionId = uuidv4();
+	return {
+		executionId: uuidv4(),
+		workflowId,
+		createDate: new Date().toLocaleString(),
+		updateDate: new Date().toLocaleString(),
+		nodeContext: {},
+		globalContext: {
+			userInput: message,
+			variables: {},
+			workspacePath: globalThis.workspacePath,
+			tempPath: `${globalThis.workspacePath}/temp/${executionId}`,
+		},
+	};
+};
 const getInitialConversation = (sessionId: string, workflowId: string, message: string): IConversation => ({
 	sessionId,
 	workflowId,
@@ -157,8 +176,15 @@ function linkNodes(nodeMap: Map<string, IDAGNode>, edges: Edge[]) {
 	edges.forEach((edge) => {
 		const sourceNode = nodeMap.get(edge.source);
 		const targetNode = nodeMap.get(edge.target);
+
 		if (sourceNode && targetNode) {
-			sourceNode.nextNodes.push(targetNode);
+			const isConditionNode = checkConditionNode(sourceNode);
+			const conditionAttr: { conditionValue?: boolean } = {};
+			if (isConditionNode) {
+				conditionAttr.conditionValue = edge.sourceHandle === 'true';
+			}
+
+			sourceNode.nextNodes.push({ ...targetNode, ...conditionAttr });
 			targetNode.sourceNodes.push({
 				...sourceNode,
 				sourceHandle: edge.sourceHandle,
@@ -167,7 +193,13 @@ function linkNodes(nodeMap: Map<string, IDAGNode>, edges: Edge[]) {
 		}
 	});
 }
-
+function initExecution(execution) {
+	if (execution?.globalContext.tempPath) {
+		if (!fs.existsSync(execution.globalContext.tempPath)) {
+			fs.mkdirSync(execution.globalContext.tempPath, { recursive: true });
+		}
+	}
+}
 async function executeDAG(
 	dagData: ReactFlowJsonObject,
 	nodelets: INodelet[],
@@ -176,6 +208,7 @@ async function executeDAG(
 	context: IContext,
 ) {
 	console.log('execute dag');
+	initExecution(execution);
 	const nodeMap = createNodeMap(dagData.nodes);
 	linkNodes(nodeMap, dagData.edges);
 	const inDegrees = new Map(Array.from(nodeMap.values()).map((node) => [node.id, 0]));
@@ -193,15 +226,19 @@ async function executeDAG(
 		} catch (e) {
 			if (e instanceof ExecutionError) {
 				console.log('error');
-				// execution.globalContext = { ...execution.globalContext, error: { id: e.id, message: e.message } };
 				execution.globalContext.errors.push({ id: e.id, message: e.message, nodeName: currentNode.data.label });
-				// break;
 			} else {
 				console.log(e);
 			}
 		}
+		let nextExecutionNodes = [...currentNode.nextNodes];
 
-		currentNode.nextNodes.forEach((nextNode: IDAGNode) => {
+		if (checkConditionNode(currentNode)) {
+			nextExecutionNodes = nextExecutionNodes.filter(
+				(node) => execution.nodeContext[currentNode.id]?.conditionValue === node.conditionValue,
+			);
+		}
+		nextExecutionNodes.forEach((nextNode: IDAGNode) => {
 			const inDegree = inDegrees.get(nextNode.id)! - 1;
 			inDegrees.set(nextNode.id, inDegree);
 			if (inDegree === 0) {
@@ -232,13 +269,17 @@ async function executeNode(node: IDAGNode, nodelets: INodelet[], integrations: I
 		context,
 	};
 	if (nodelet.internal) {
-		if (InternalNodeletExecutor[nodelet?.id as InternalNodelets]?.isAsync) {
+		if (nodelet?.isAsync) {
 			await InternalNodeletExecutor[nodelet?.id as InternalNodelets]?.executor(executorContext);
 		} else {
 			InternalNodeletExecutor[nodelet?.id as InternalNodelets]?.executor(executorContext);
 		}
 	} else {
-		executeCustom(executorContext);
+		if (nodelet?.isAsync) {
+			await executeCustom(executorContext);
+		} else {
+			executeCustom(executorContext);
+		}
 	}
 	postProcess(node, nodelet, execution, context);
 }

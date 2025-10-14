@@ -4,6 +4,7 @@ import { INodelet, NodeletCategory, NodeletInputType, NodeletOutputType, Workflo
 export enum InternalNodelets {
 	UserInput = 'UserInput',
 	TextInput = 'TextInput',
+	FileInput = 'FileInput',
 	TextAreaInput = 'TextAreaInput',
 	KnowledgeBase = 'KnowledgeBase',
 	OpenAI = 'OpenAI',
@@ -19,6 +20,8 @@ export enum InternalNodelets {
 	Email = 'Email',
 	DeepSeek = 'DeepSeek',
 	SplitText = 'SplitText',
+	If = 'If',
+	Search = 'Search',
 }
 
 export const Nodelets: INodelet[] = [
@@ -34,11 +37,11 @@ export const Nodelets: INodelet[] = [
 		outputs: [
 			{
 				id: 'query',
-				name: 'query',
 				type: NodeletOutputType.String,
 			},
 		],
 		configDefinitions: [],
+		isAsync: false,
 	},
 	{
 		id: 'TextInput',
@@ -52,7 +55,6 @@ export const Nodelets: INodelet[] = [
 		outputs: [
 			{
 				id: 'output',
-				name: 'output',
 				type: NodeletOutputType.String,
 			},
 		],
@@ -66,6 +68,34 @@ export const Nodelets: INodelet[] = [
 				isDisplayed: true,
 			},
 		],
+		isAsync: false,
+	},
+	{
+		id: 'FileInput',
+		category: NodeletCategory.Input,
+		workflowCategory: WorkflowCategory.All,
+		name: 'File Input',
+		internal: true,
+		image:
+			'data:image/png;base64,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',
+		inputs: [],
+		outputs: [
+			{
+				id: 'filePath',
+				type: NodeletOutputType.String,
+			},
+		],
+		configDefinitions: [
+			{
+				name: 'file',
+				fieldName: 'file',
+				label: 'file',
+				type: 'FILE',
+				placeholder: 'Choose a file',
+				isDisplayed: true,
+			},
+		],
+		isAsync: false,
 	},
 	{
 		id: 'TextAreaInput',
@@ -79,7 +109,6 @@ export const Nodelets: INodelet[] = [
 		outputs: [
 			{
 				id: 'output',
-				name: 'output',
 				type: NodeletOutputType.String,
 			},
 		],
@@ -93,6 +122,7 @@ export const Nodelets: INodelet[] = [
 				isDisplayed: true,
 			},
 		],
+		isAsync: false,
 	},
 	{
 		id: 'KnowledgeBase',
@@ -105,14 +135,12 @@ export const Nodelets: INodelet[] = [
 		inputs: [
 			{
 				id: 'query',
-				name: 'query',
 				type: NodeletInputType.String,
 			},
 		],
 		outputs: [
 			{
 				id: 'RelativeContent',
-				name: 'relative content',
 				type: NodeletOutputType.Context,
 			},
 		],
@@ -128,6 +156,7 @@ export const Nodelets: INodelet[] = [
 				placeholder: 'choose knowledge base',
 			},
 		],
+		isAsync: true,
 	},
 	{
 		id: 'OpenAI',
@@ -141,19 +170,16 @@ export const Nodelets: INodelet[] = [
 		inputs: [
 			{
 				id: 'query',
-				name: 'query',
 				type: NodeletInputType.String,
 			},
 			{
 				id: 'context',
-				name: 'context',
 				type: NodeletInputType.Context,
 			},
 		],
 		outputs: [
 			{
 				id: 'answer',
-				name: 'answer',
 				type: NodeletOutputType.String,
 			},
 		],
@@ -191,6 +217,7 @@ export const Nodelets: INodelet[] = [
 						{ value: 'gpt-4-32k', label: 'gpt-4-32k' },
 						{ value: 'gpt-4-turbo', label: 'gpt-4-turbo' },
 						{ value: 'gpt-4-turbo-preview', label: 'gpt-4-turbo-preview' },
+						{ value: 'gpt-5', label: 'gpt-5' },
 					],
 				},
 			},
@@ -243,6 +270,7 @@ export const Nodelets: INodelet[] = [
 				},
 			},
 		],
+		isAsync: true,
 	},
 	{
 		id: 'Claude',
@@ -256,19 +284,16 @@ export const Nodelets: INodelet[] = [
 		inputs: [
 			{
 				id: 'query',
-				name: 'query',
 				type: NodeletInputType.String,
 			},
 			{
 				id: 'context',
-				name: 'context',
 				type: NodeletInputType.Context,
 			},
 		],
 		outputs: [
 			{
 				id: 'answer',
-				name: 'answer',
 				type: NodeletOutputType.String,
 			},
 		],
@@ -354,6 +379,7 @@ export const Nodelets: INodelet[] = [
 				},
 			},
 		],
+		isAsync: true,
 	},
 	{
 		id: 'DeepSeek',
@@ -367,19 +393,16 @@ export const Nodelets: INodelet[] = [
 		inputs: [
 			{
 				id: 'query',
-				name: 'query',
 				type: NodeletInputType.String,
 			},
 			{
 				id: 'context',
-				name: 'context',
 				type: NodeletInputType.Context,
 			},
 		],
 		outputs: [
 			{
 				id: 'answer',
-				name: 'answer',
 				type: NodeletOutputType.String,
 			},
 		],
@@ -464,6 +487,7 @@ export const Nodelets: INodelet[] = [
 				},
 			},
 		],
+		isAsync: true,
 	},
 	{
 		id: 'Ollama',
@@ -477,19 +501,16 @@ export const Nodelets: INodelet[] = [
 		inputs: [
 			{
 				id: 'query',
-				name: 'query',
 				type: NodeletInputType.String,
 			},
 			{
 				id: 'context',
-				name: 'context',
 				type: NodeletInputType.Context,
 			},
 		],
 		outputs: [
 			{
 				id: 'answer',
-				name: 'answer',
 				type: NodeletOutputType.String,
 			},
 		],
@@ -581,12 +602,12 @@ export const Nodelets: INodelet[] = [
 		inputs: [
 			{
 				id: 'output',
-				name: 'output',
 				type: NodeletInputType.String,
 			},
 		],
 		outputs: [],
 		configDefinitions: [],
+		isAsync: false,
 	},
 	{
 		id: 'Email',
@@ -599,7 +620,6 @@ export const Nodelets: INodelet[] = [
 		inputs: [
 			{
 				id: 'mailContent',
-				name: 'mail content',
 				type: NodeletInputType.String,
 			},
 		],
@@ -620,6 +640,7 @@ export const Nodelets: INodelet[] = [
 				placeholder: '',
 			},
 		],
+		isAsync: false,
 	},
 	{
 		id: 'DisplayOnScreen',
@@ -632,12 +653,12 @@ export const Nodelets: INodelet[] = [
 		inputs: [
 			{
 				id: 'displayContent',
-				name: 'display content',
 				type: NodeletInputType.String,
 			},
 		],
 		outputs: [],
 		configDefinitions: [],
+		isAsync: false,
 	},
 	{
 		id: 'SaveToFile',
@@ -650,7 +671,6 @@ export const Nodelets: INodelet[] = [
 		inputs: [
 			{
 				id: 'content',
-				name: 'content',
 				type: NodeletInputType.String,
 			},
 		],
@@ -690,6 +710,7 @@ export const Nodelets: INodelet[] = [
 				required: true,
 			},
 		],
+		isAsync: true,
 	},
 	{
 		id: 'SaveToObsidian',
@@ -703,7 +724,6 @@ export const Nodelets: INodelet[] = [
 		inputs: [
 			{
 				id: 'content',
-				name: 'content',
 				type: NodeletInputType.String,
 			},
 		],
@@ -726,6 +746,7 @@ export const Nodelets: INodelet[] = [
 				required: false,
 			},
 		],
+		isAsync: true,
 	},
 	{
 		id: 'FireCrawl',
@@ -740,7 +761,6 @@ export const Nodelets: INodelet[] = [
 		outputs: [
 			{
 				id: 'content',
-				name: 'content',
 				type: NodeletOutputType.String,
 			},
 		],
@@ -753,6 +773,7 @@ export const Nodelets: INodelet[] = [
 				required: true,
 			},
 		],
+		isAsync: true,
 	},
 	{
 		id: 'URLLoader',
@@ -766,7 +787,6 @@ export const Nodelets: INodelet[] = [
 		outputs: [
 			{
 				id: 'content',
-				name: 'content',
 				type: NodeletOutputType.String,
 			},
 		],
@@ -779,6 +799,7 @@ export const Nodelets: INodelet[] = [
 				required: true,
 			},
 		],
+		isAsync: true,
 	},
 	{
 		id: 'YoutubeLoader',
@@ -793,7 +814,6 @@ export const Nodelets: INodelet[] = [
 		outputs: [
 			{
 				id: 'transcript',
-				name: 'transcript',
 				type: NodeletOutputType.String,
 			},
 		],
@@ -806,6 +826,7 @@ export const Nodelets: INodelet[] = [
 				required: true,
 			},
 		],
+		isAsync: true,
 	},
 	{
 		id: 'SplitText',
@@ -819,14 +840,12 @@ export const Nodelets: INodelet[] = [
 		inputs: [
 			{
 				id: 'inputText',
-				name: 'inputText',
 				type: NodeletInputType.String,
 			},
 		],
 		outputs: [
 			{
 				id: 'splitText',
-				name: 'split text',
 				type: NodeletOutputType.StringArray,
 			},
 		],
@@ -840,5 +859,94 @@ export const Nodelets: INodelet[] = [
 				isDisplayed: true,
 			},
 		],
+		isAsync: false,
+	},
+	{
+		id: 'If',
+		category: NodeletCategory.Processor,
+		workflowCategory: WorkflowCategory.All,
+		description: 'A node that checks a string using one of three modes: is empty, contains, or does not contain.',
+		name: 'If',
+		internal: true,
+		image:
+			'data:image/png;base64,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',
+		inputs: [
+			{
+				id: 'content',
+				type: NodeletInputType.String,
+			},
+		],
+		outputs: [
+			{
+				id: 'true',
+				type: NodeletOutputType.String,
+			},
+			{
+				id: 'false',
+				type: NodeletOutputType.String,
+			},
+		],
+		configDefinitions: [
+			{
+				name: 'Condition Mode',
+				fieldName: 'conditionMode',
+				label: 'Condition Mode:',
+				type: 'SELECT',
+				defaultValue: 'isEmpty',
+				isDisplayed: true,
+				misc: {
+					values: [
+						{ value: 'isEmpty', label: 'Is Empty' },
+						{ value: 'contains', label: 'Contains' },
+						{ value: 'notContains', label: 'Not Contains' },
+					],
+				},
+			},
+			{
+				name: 'Value',
+				fieldName: 'value',
+				label: 'Value:',
+				type: 'INPUT',
+				required: false,
+				hiddenOnMap: {
+					conditionMode: 'isEmpty',
+				},
+			},
+		],
+		isAsync: false,
+	},
+	{
+		id: 'Search',
+		category: NodeletCategory.Processor,
+		workflowCategory: WorkflowCategory.All,
+		description: 'search web content',
+		name: 'Search Web',
+		internal: true,
+		image:
+			'data:image/png;base64,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',
+		inputs: [
+			{
+				id: 'inputText',
+				type: NodeletInputType.String,
+			},
+		],
+		outputs: [
+			{
+				id: 'searchResults',
+				type: NodeletOutputType.StringArray,
+			},
+		],
+		configDefinitions: [
+			{
+				name: 'assemble',
+				fieldName: 'assemble',
+				label: 'Query Assemble:',
+				type: 'INPUT',
+				required: true,
+				defaultValue: '{query}',
+				description: 'use {query} to replace the input text if needed',
+			},
+		],
+		isAsync: true,
 	},
 ];

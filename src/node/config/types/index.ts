@@ -10,12 +10,15 @@ import ConfigNumber from './ConfigNumber';
 import ConfigSelect from './ConfigSelect';
 import ConfigTags from './ConfigTags';
 import ConfigTextarea from './ConfigTextarea';
+import ConfigFileSelect from './ConfigFileSelect';
 
 export function getTargetConfigClass(def: IConfigBaseExtend<any>) {
 	const { type } = def;
 	switch (type) {
 		case ConfigurationType.INPUT:
 			return ConfigInput;
+		case ConfigurationType.FILE:
+			return ConfigFileSelect;
 		case ConfigurationType.TAGS:
 			return ConfigTags;
 		case ConfigurationType.LABEL:

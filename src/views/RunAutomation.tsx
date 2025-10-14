@@ -77,7 +77,9 @@ export default function RunAutomation({ workflow }: Props) {
 						<Text className="text-primary" fw={600} size="sm">
 							{res.name}
 						</Text>
-						<Text size="sm">{res.content}</Text>
+						<Text style={{ whiteSpace: 'pre-line' }} size="sm">
+							{res.content}
+						</Text>
 					</Card>
 				);
 			})}

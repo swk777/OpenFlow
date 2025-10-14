@@ -1,0 +1,24 @@
+{
+	"name": "youtube-downloader",
+	"version": "1.0.0",
+	"description": "Electron Plugin Boilerplate with esbuild",
+	"main": "dist/main.js",
+	"scripts": {
+		"dev": "node esbuild.config.js --dev",
+		"build": "node esbuild.config.js",
+		"watch": "node esbuild.config.js --watch"
+	},
+	"keywords": [
+		"electron",
+		"plugin",
+		"esbuild"
+	],
+	"author": "Your Name",
+	"license": "MIT",
+	"devDependencies": {
+		"esbuild": "latest"
+	},
+	"dependencies": {
+		"ytdl-core": "npm:@distube/ytdl-core@^4.16.10"
+	}
+}

@@ -46,9 +46,10 @@ const url = process.env.VITE_DEV_SERVER_URL;
 const indexHtml = join(process.env.DIST, 'index.html');
 const store = new Store<{ workspacePath: string }>();
 
-ipcMain.handle('open-directory-dialog', async (event) => {
+ipcMain.handle('open-directory-dialog', async (event, post) => {
+	const { isFile } = post;
 	const result = await dialog.showOpenDialog({
-		properties: ['openDirectory'],
+		properties: [isFile ? 'openFile' : 'openDirectory'],
 	});
 	return result.filePaths[0];
 });

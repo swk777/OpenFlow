@@ -14,7 +14,6 @@ export default function Extensions({}: Props) {
 					<Button
 						size="sm"
 						onClick={async () => {
-							await window.ipcRenderer.refreshExtensions();
 							refreshExtensions();
 						}}
 					>

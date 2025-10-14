@@ -23,8 +23,8 @@
 		"e2e": "playwright test"
 	},
 	"dependencies": {
-		"@ai-sdk/anthropic": "^1.0.2",
-		"@ai-sdk/openai": "^0.0.72",
+		"@ai-sdk/anthropic": "latest",
+		"@ai-sdk/openai": "latest",
 		"@anthropic-ai/sdk": "^0.32.1",
 		"@langchain/community": "^0.0.49",
 		"@langchain/openai": "^0.0.28",
@@ -43,7 +43,8 @@
 		"@radix-ui/react-tabs": "^1.0.4",
 		"@radix-ui/react-tooltip": "^1.0.7",
 		"@tabler/icons-react": "^3.1.0",
-		"ai": "^3.4.33",
+		"@tavily/core": "^0.5.12",
+		"ai": "latest",
 		"cheerio": "^1.0.0-rc.12",
 		"class-variance-authority": "^0.7.0",
 		"clsx": "^2.1.0",
@@ -55,6 +56,7 @@
 		"hnswlib-node": "^1.4.2",
 		"html-to-text": "^9.0.5",
 		"immer": "9.0.2",
+		"jsonrepair": "^3.13.1",
 		"jspdf": "^2.5.1",
 		"langchain": "^0.1.37",
 		"llamaindex": "^0.3.17",
